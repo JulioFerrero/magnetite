@@ -78,8 +78,8 @@ enum Theme {
     static let iconGap: CGFloat = 12
     static let accessoryGap: CGFloat = 16
     static let runningDotSize: CGFloat = 3
+    static let smallButtonSize: CGFloat = 22 // × on history rows, "Clear" in their header
     static let titleFont = inter(13, contextualAlternates: false)
-    static let accessoryFont = inter(13)
     static let sectionHeight: CGFloat = 32       // 12 spacer + 12 label + 8 margin
     static let sectionLabelCenterY: CGFloat = 19 // from the section row's top
     static let sectionFont = inter(11)

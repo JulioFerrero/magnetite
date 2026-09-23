@@ -26,7 +26,8 @@ It adds itself to Login Items on first run (turn it off in System Settings → G
 | Esc | clear the query, then close |
 | ⌘Q | quit Launcher |
 
-Apps you open often float to the top, and it remembers what you picked for a query.
+Apps you open often float to the top (the Suggestions section), and it remembers what you picked for a query.
+Click × on a suggestion to remove it from your history, or Clear to wipe it all.
 It indexes `/Applications`, `/System/Applications`, `~/Applications` and a few system folders each time it opens, so new apps show up immediately.
 
 ## Settings

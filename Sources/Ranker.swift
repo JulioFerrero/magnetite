@@ -75,6 +75,23 @@ final class Usage {
         launches[app.id] = Array(times.suffix(30))
         let q = normalize(query.trimmingCharacters(in: .whitespaces))
         if !q.isEmpty { picks[q] = app.id }
+        save()
+    }
+
+    /// Removes an app from the history: its launches and any query that picked it.
+    func forget(_ app: AppEntry) {
+        launches[app.id] = nil
+        picks = picks.filter { $0.value != app.id }
+        save()
+    }
+
+    func forgetAll() {
+        launches = [:]
+        picks = [:]
+        save()
+    }
+
+    private func save() {
         defaults.set(launches, forKey: "launches")
         defaults.set(picks, forKey: "picks")
     }

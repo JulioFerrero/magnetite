@@ -44,6 +44,8 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
     private var runningIDs: Set<String> = []
     private var isShown = false
     private var rows: [Row] = []
+    /// Rows of the "Suggestions" section (your history); they get a remove button.
+    private var suggestedRows = 0..<0
     private var selected: Int?
     private var hovered: Int?
     private var keyMonitor: Any?
@@ -177,11 +179,13 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
                 rows.append(.header("Suggestions"))
                 rows += suggested.map(Row.app)
             }
+            suggestedRows = suggested.isEmpty ? 0..<0 : 1..<rows.count
             rows.append(.header("Applications"))
             rows += apps.filter { !suggestedIDs.contains($0.id) }.map(Row.app)
         } else {
             let results = usage.rank(apps, query: query)
             rows = results.isEmpty ? [] : [.header("Results")] + results.map(Row.app)
+            suggestedRows = 0..<0
         }
         selected = rows.firstIndex(where: \.isApp)
         hovered = nil
@@ -246,6 +250,16 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         NSWorkspace.shared.openApplication(at: app.url, configuration: config) { _, error in
             if let error { NSLog("Launcher: failed to open %@: %@", app.url.path, error.localizedDescription) }
         }
+    }
+
+    private func forget(_ app: AppEntry) {
+        usage.forget(app)
+        update()
+    }
+
+    private func clearHistory() {
+        usage.forgetAll()
+        update()
     }
 
     @objc private func revealSelected() {
@@ -334,12 +348,14 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         case .header(let title):
             let cell = tableView.makeView(withIdentifier: SectionCell.identifier, owner: nil) as? SectionCell ?? SectionCell()
             cell.label.attributedStringValue = Theme.text(title, Theme.sectionFont, Theme.secondaryText)
+            cell.onClear = title == "Suggestions" ? { [weak self] in self?.clearHistory() } : nil
             return cell
         case .app(let app):
             let cell = tableView.makeView(withIdentifier: AppCell.identifier, owner: nil) as? AppCell ?? AppCell()
             cell.title.attributedStringValue = Theme.text(app.name, Theme.titleFont, Theme.primaryText)
             cell.icon.image = icons.icon(for: app.url)
             cell.runningDot.isHidden = !runningIDs.contains(app.id)
+            cell.onRemove = suggestedRows.contains(row) ? { [weak self] in self?.forget(app) } : nil
             return cell
         }
     }
@@ -666,7 +682,14 @@ final class AppCell: NSTableCellView {
     let icon = NSImageView()
     let runningDot = FillView(color: Theme.tertiaryText, radius: Theme.runningDotSize / 2)
     let title = NSTextField(labelWithString: "")
-    private let accessory = NSTextField(labelWithString: "")
+    private let removeButton = SymbolButton(symbol: "xmark")
+    /// Set for history rows: shows an × that removes the app from Suggestions.
+    var onRemove: (() -> Void)? {
+        didSet {
+            removeButton.onClick = onRemove
+            removeButton.isHidden = onRemove == nil
+        }
+    }
 
     init() {
         super.init(frame: .zero)
@@ -674,10 +697,10 @@ final class AppCell: NSTableCellView {
         icon.imageScaling = .scaleProportionallyUpOrDown
         title.lineBreakMode = .byTruncatingTail
         title.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        accessory.attributedStringValue = Theme.text("Application", Theme.accessoryFont, Theme.secondaryText)
-        accessory.setContentCompressionResistancePriority(.required, for: .horizontal)
+        removeButton.isHidden = true
+        removeButton.toolTip = "Remove from Suggestions"
 
-        for view in [icon, runningDot, title, accessory] {
+        for view in [icon, runningDot, title, removeButton] {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)
         }
@@ -696,9 +719,12 @@ final class AppCell: NSTableCellView {
             title.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: Theme.iconGap),
             title.centerYAnchor.constraint(equalTo: centerYAnchor),
 
-            accessory.leadingAnchor.constraint(greaterThanOrEqualTo: title.trailingAnchor, constant: Theme.accessoryGap),
-            accessory.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -inset),
-            accessory.centerYAnchor.constraint(equalTo: centerYAnchor),
+            title.trailingAnchor.constraint(lessThanOrEqualTo: removeButton.leadingAnchor, constant: -Theme.accessoryGap),
+
+            removeButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -(Theme.rowMargin + 4)),
+            removeButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            removeButton.widthAnchor.constraint(equalToConstant: Theme.smallButtonSize),
+            removeButton.heightAnchor.constraint(equalToConstant: Theme.smallButtonSize),
         ])
     }
 
@@ -709,15 +735,29 @@ final class SectionCell: NSTableCellView {
     static let identifier = NSUserInterfaceItemIdentifier("section")
 
     let label = NSTextField(labelWithString: "")
+    private let clearButton = FooterButton(title: "Clear", keys: [], color: Theme.secondaryText, height: Theme.smallButtonSize)
+    /// Set for the Suggestions header: shows a Clear button that wipes the history.
+    var onClear: (() -> Void)? {
+        didSet {
+            clearButton.onClick = onClear
+            clearButton.isHidden = onClear == nil
+        }
+    }
 
     init() {
         super.init(frame: .zero)
         identifier = Self.identifier
-        label.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(label)
+        clearButton.isHidden = true
+        clearButton.toolTip = "Clear all suggestions"
+        for view in [label, clearButton] {
+            view.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(view)
+        }
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Theme.rowMargin + Theme.rowPadding),
             label.centerYAnchor.constraint(equalTo: topAnchor, constant: Theme.sectionLabelCenterY),
+            clearButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -(Theme.rowMargin + 4)),
+            clearButton.centerYAnchor.constraint(equalTo: label.centerYAnchor),
         ])
     }
 
@@ -727,23 +767,26 @@ final class SectionCell: NSTableCellView {
 // MARK: - Footer
 
 /// "Open Application ↵" / "Actions ⌘ K": a title plus outlined keycaps, with a
-/// faint rounded hover background.
+/// faint rounded hover background. Without keys it's a plain text button ("Clear").
 final class FooterButton: NSView {
     weak var target: AnyObject?
     var action: Selector?
+    var onClick: (() -> Void)?
     var isEnabled = true {
         didSet { alphaValue = isEnabled ? 1 : 0.4 }
     }
 
     private let title: NSAttributedString
     private let keys: [NSAttributedString]
+    private let height: CGFloat
     private var isHovered = false {
         didSet { needsDisplay = true }
     }
 
-    init(title: String, keys: [String], color: NSColor) {
+    init(title: String, keys: [String], color: NSColor, height: CGFloat = Theme.buttonHeight) {
         self.title = Theme.text(title, Theme.buttonFont, color)
         self.keys = keys.map { Theme.text($0, Theme.keyCapFont, Theme.secondaryText, kern: 0) }
+        self.height = height
         super.init(frame: .zero)
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
     }
@@ -755,9 +798,10 @@ final class FooterButton: NSView {
     }
 
     override var intrinsicContentSize: NSSize {
-        let keysWidth = keys.map(keyWidth).reduce(0, +) + CGFloat(max(0, keys.count - 1)) * Theme.keyCapGap
-        let width = 2 * Theme.buttonPadding + 2 * Theme.buttonTitlePadding + ceil(title.size().width) + Theme.buttonGap + keysWidth
-        return NSSize(width: width, height: Theme.buttonHeight)
+        let keysWidth = keys.isEmpty ? 0
+            : Theme.buttonGap + keys.map(keyWidth).reduce(0, +) + CGFloat(keys.count - 1) * Theme.keyCapGap
+        let width = 2 * Theme.buttonPadding + 2 * Theme.buttonTitlePadding + ceil(title.size().width) + keysWidth
+        return NSSize(width: width, height: height)
     }
 
     override func draw(_ dirtyRect: NSRect) {
@@ -786,9 +830,54 @@ final class FooterButton: NSView {
     override func mouseEntered(with event: NSEvent) { isHovered = true }
     override func mouseExited(with event: NSEvent) { isHovered = false }
 
+    /// Kept here so a click inside a list row doesn't also reach the row (and open the app).
+    override func mouseDown(with event: NSEvent) {}
+
     override func mouseUp(with event: NSEvent) {
-        guard isEnabled, bounds.contains(convert(event.locationInWindow, from: nil)), let action else { return }
-        NSApp.sendAction(action, to: target, from: self)
+        guard isEnabled, bounds.contains(convert(event.locationInWindow, from: nil)) else { return }
+        if let action { NSApp.sendAction(action, to: target, from: self) } else { onClick?() }
+    }
+}
+
+/// A small square icon button (the × on history rows).
+final class SymbolButton: NSView {
+    var onClick: (() -> Void)?
+
+    private let image: NSImage
+    private var isHovered = false {
+        didSet { needsDisplay = true }
+    }
+
+    init(symbol: String) {
+        image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)!
+            .withSymbolConfiguration(.init(pointSize: 10, weight: .semibold))!
+        super.init(frame: .zero)
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func draw(_ dirtyRect: NSRect) {
+        if isHovered {
+            Theme.selection.setFill()
+            NSBezierPath(roundedRect: bounds, xRadius: Theme.keyCapRadius, yRadius: Theme.keyCapRadius).fill()
+        }
+        let tinted = NSImage(size: image.size, flipped: false) { rect in
+            self.image.draw(in: rect)
+            (self.isHovered ? Theme.primaryText : Theme.tertiaryText).set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
+        let size = image.size
+        tinted.draw(in: NSRect(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2, width: size.width, height: size.height))
+    }
+
+    override func mouseEntered(with event: NSEvent) { isHovered = true }
+    override func mouseExited(with event: NSEvent) { isHovered = false }
+    override func mouseDown(with event: NSEvent) {}
+
+    override func mouseUp(with event: NSEvent) {
+        if bounds.contains(convert(event.locationInWindow, from: nil)) { onClick?() }
     }
 }
 
