@@ -85,7 +85,7 @@ final class HotKey {
         }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &handlerRef)
         guard installed == noErr else { return nil }
 
-        let id = EventHotKeyID(signature: OSType(0x4C4E_4348), id: 1) // "LNCH"
+        let id = EventHotKeyID(signature: OSType(0x5450_415A), id: 1) // "TPAZ"
         let registered = RegisterEventHotKey(combo.keyCode, combo.modifiers, id, GetApplicationEventTarget(), 0, &hotKeyRef)
         guard registered == noErr else { return nil }
     }

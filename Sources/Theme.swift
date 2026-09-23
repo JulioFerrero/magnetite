@@ -140,7 +140,7 @@ enum Theme {
     /// works out which of ~300 languages it covers and keeps those tables.
     private static let interBase: CTFontDescriptor? = {
         guard let url = Bundle.main.url(forResource: "InterVariable", withExtension: "ttf") else {
-            NSLog("Launcher: InterVariable.ttf missing from bundle, falling back to the system font")
+            NSLog("Topaz: InterVariable.ttf missing from bundle, falling back to the system font")
             return nil
         }
         return (CTFontManagerCreateFontDescriptorsFromURL(url as CFURL) as? [CTFontDescriptor])?.first

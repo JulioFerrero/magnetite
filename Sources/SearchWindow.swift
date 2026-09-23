@@ -38,7 +38,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
     private let icons = IconCache(size: Theme.iconSize)
     // .workItem: release each scan's temporaries (every Info.plist read) when it
     // finishes, instead of whenever the worker thread happens to exit.
-    private let scanQueue = DispatchQueue(label: "launcher.scan", qos: .userInitiated, autoreleaseFrequency: .workItem)
+    private let scanQueue = DispatchQueue(label: "topaz.scan", qos: .userInitiated, autoreleaseFrequency: .workItem)
     private var apps: [AppEntry] = []
     private var folderStamps: AppIndex.Stamps = [:]
     private var runningIDs: Set<String> = []
@@ -245,7 +245,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         let config = NSWorkspace.OpenConfiguration()
         config.activates = true
         NSWorkspace.shared.openApplication(at: app.url, configuration: config) { _, error in
-            if let error { NSLog("Launcher: failed to open %@: %@", app.url.path, error.localizedDescription) }
+            if let error { NSLog("Topaz: failed to open %@: %@", app.url.path, error.localizedDescription) }
         }
     }
 
@@ -278,7 +278,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         }
         let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settings.target = self
-        let quit = NSMenuItem(title: "Quit Launcher", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Topaz", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.items = [open, reveal, .separator(), settings, quit]
         // Open upward from the Actions button, like Raycast's action panel.
         let origin = NSPoint(x: 0, y: actionsButton.bounds.height + menu.size.height + 6)

@@ -1,6 +1,7 @@
-# Launcher
+# Topaz
 
 A Raycast 2–looking app launcher that does one thing: search and open apps.
+Named after Topaz, the Amiga's system font — a lot from very little.
 Native AppKit + Liquid Glass (macOS 26+), no dependencies, ~1,250 lines of Swift.
 Bundles the Inter font (SIL Open Font License, see `Resources/Fonts/LICENSE.txt`), trimmed to what the UI uses by `scripts/make-font.sh` from the original in `Resources/Fonts/source/`.
 
@@ -24,7 +25,7 @@ It adds itself to Login Items on first run (turn it off in System Settings → G
 | ⌘K | actions (open, show in Finder, settings, quit) |
 | ⌘, | settings |
 | Esc | clear the query, then close |
-| ⌘Q | quit Launcher |
+| ⌘Q | quit Topaz |
 
 Apps you open often float to the top (the Suggestions section), and it remembers what you picked for a query.
 Click × on a suggestion to remove it from your history, or Clear to wipe it all.
