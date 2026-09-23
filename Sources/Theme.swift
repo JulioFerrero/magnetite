@@ -82,6 +82,7 @@ enum Theme {
     static let titleFont = inter(13, contextualAlternates: false)
     static let sectionHeight: CGFloat = 32       // 12 spacer + 12 label + 8 margin
     static let sectionLabelCenterY: CGFloat = 19 // from the section row's top
+    static let clearButtonGap: CGFloat = 6        // extra room under the Suggestions header's Clear button
     static let sectionFont = inter(11)
     static let emptyFont = inter(13)
     static let suggestionCount = 5

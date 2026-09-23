@@ -332,7 +332,10 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
     func numberOfRows(in tableView: NSTableView) -> Int { rows.count }
 
     func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-        rows[row].isApp ? Theme.rowHeight : Theme.sectionHeight
+        switch rows[row] {
+        case .app: Theme.rowHeight
+        case .header(let title): title == "Suggestions" ? Theme.sectionHeight + Theme.clearButtonGap : Theme.sectionHeight
+        }
     }
 
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
