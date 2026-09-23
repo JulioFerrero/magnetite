@@ -73,18 +73,15 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         isShown = true
         position()
         panel.ignoresMouseEvents = false
+        // Take keyboard focus before becoming visible (~4ms round trip through the
+        // window server). Liquid Glass draws unfocused windows as flat, lighter
+        // "inactive" glass, so showing first flashes that for a frame.
+        panel.makeKey()
+        if (panel.firstResponder as? NSTextView)?.delegate !== field { // stays focused between shows
+            panel.makeFirstResponder(field)
+        }
         panel.alphaValue = 1
         CATransaction.flush() // hand the now-visible frame to the window server right away
-        // Taking keyboard focus is a ~4ms round trip through the window server;
-        // do it just after the window is on its way to the screen. (Nobody can
-        // type within those milliseconds of pressing the hotkey.)
-        DispatchQueue.main.async { [self] in
-            guard isShown else { return }
-            panel.makeKey()
-            if (panel.firstResponder as? NSTextView)?.delegate !== field { // stays focused between shows
-                panel.makeFirstResponder(field)
-            }
-        }
         if let editor = panel.fieldEditor(false, for: field) as? NSTextView {
             editor.insertionPointColor = Theme.primaryText
             editor.selectedTextAttributes = [.backgroundColor: Theme.textSelection]
