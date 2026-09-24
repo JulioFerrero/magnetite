@@ -5,6 +5,7 @@ enum Theme {
     static let panelSize = NSSize(width: windowSize.width + shadowMargin.left + shadowMargin.right, height: windowSize.height + shadowMargin.top + shadowMargin.bottom)
     static let cornerRadius = 26.0, topOffsetRatio = 0.22, suggestionCount = 5
     static let glassTint = dynamic(NSColor(white: 0, alpha: 0.40), NSColor(white: 1, alpha: 0.40)), windowBorder = dynamic(fg(0.10), .clear)
+    static let solidBackground = dynamic(NSColor(white: 0x26 / 255.0, alpha: 1), .white), solidPill = dynamic(NSColor(white: 0x33 / 255.0, alpha: 1), NSColor(white: 0xF2 / 255.0, alpha: 1))
     static let headerHeight = 64.0, headerInset = 16.0, headerGap = 12.0, logoSize = 22.0, searchFieldHeight = 32.0
     static let searchFont = inter(18, weight: 350), placeholder = "Search for apps…"
     static let listTopInset = headerHeight + 8, listBottomInset = footerHeight + 16, topFadeHeight = 96.0, bottomFadeHeight = 72.0

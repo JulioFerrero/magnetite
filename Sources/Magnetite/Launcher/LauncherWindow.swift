@@ -8,7 +8,7 @@ final class LauncherWindow: NSPanel {
         (level, collectionBehavior, animationBehavior) = (.modalPanel, [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle], .none)
         (isOpaque, backgroundColor, hasShadow, hidesOnDeactivate, isReleasedWhenClosed, isMovable) = (false, .clear, false, false, false, false)
         (acceptsMouseMovedEvents, contentView) = (true, background)
-        for card in [ShadowView([(28, 72, 0.42), (8, 24, 0.22)]), NSGlassEffectView(style: .regular, radius: Theme.cornerRadius, tint: Theme.glassTint, content: content),
+        for card in [ShadowView([(28, 72, 0.42), (8, 24, 0.22)]), surface(radius: Theme.cornerRadius, tint: Theme.glassTint, solid: Theme.solidBackground, content: content),
                       FillView(color: .clear, radius: Theme.cornerRadius, border: Theme.windowBorder)] { card.fill(background, Theme.shadowMargin) }
         position()
     }
@@ -37,7 +37,10 @@ final class LauncherWindow: NSPanel {
 
 final class PanelBackground: NSView {
     var onClick: (() -> Void)?
-    override func mouseDown(with event: NSEvent) { onClick?() }
+    override func mouseDown(with event: NSEvent) {
+        let card = NSRect(origin: NSPoint(x: Theme.shadowMargin.left, y: Theme.shadowMargin.bottom), size: Theme.windowSize)
+        if !card.contains(convert(event.locationInWindow, from: nil)) { onClick?() }
+    }
 }
 
 final class ShadowView: NSView {

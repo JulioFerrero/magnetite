@@ -15,11 +15,16 @@ final class FillView: NSView {
     }
 }
 
-extension NSGlassEffectView {
-    convenience init(style: Style, radius: CGFloat, tint: NSColor? = nil, content: NSView? = nil) {
-        self.init()
-        (self.style, cornerRadius, tintColor, contentView) = (style, radius, tint, content)
+func surface(radius: CGFloat, tint: NSColor? = nil, solid: NSColor, content: NSView) -> NSView {
+    guard #available(macOS 26, *) else {
+        let view = NSView()
+        FillView(color: solid, radius: radius).fill(view)
+        content.fill(view)
+        return view
     }
+    let glass = NSGlassEffectView()
+    (glass.style, glass.cornerRadius, glass.tintColor, glass.contentView) = (.regular, radius, tint, content)
+    return glass
 }
 
 extension NSView {

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="macOS 26+" src="https://img.shields.io/badge/macOS-26%2B-111?logo=apple&logoColor=white">
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111?logo=apple&logoColor=white">
   <img alt="Swift" src="https://img.shields.io/badge/Swift-AppKit-F05138?logo=swift&logoColor=white">
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-0-3A4250">
   <img alt="23 MB RAM" src="https://img.shields.io/badge/RAM-23_MB-3A4250">
@@ -95,7 +95,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 
 ## Install
 
-Download **Magnetite-x.y.z.dmg** from the [latest release](https://github.com/JulioFerrero/magnetite/releases/latest), open it and drag Magnetite to Applications. It needs macOS 26 or later on Apple silicon.
+Download **Magnetite-x.y.z.dmg** from the [latest release](https://github.com/JulioFerrero/magnetite/releases/latest), open it and drag Magnetite to Applications. It runs on macOS 14 or later on Apple silicon: with Liquid Glass on macOS 26 and later, and a solid background on 14 and 15.
 
 The app isn't notarized (that needs a paid Apple developer account), so the first time you open it macOS says it can't check it. Go to System Settings → Privacy & Security, scroll down and click **Open Anyway**. You only do this once.
 
@@ -151,12 +151,12 @@ Sources/
     ShortcutPrompt.swift        "press a new shortcut" dialog
     Launcher/
       LauncherController.swift  show, hide, keys and actions; wires the parts
-      LauncherWindow.swift      the panel, its glass card and shadow
+      LauncherWindow.swift      the panel, its card and shadow
       SearchBar.swift           field, placeholder and mark on one baseline
       ResultsList.swift         rows, selection, edge fades, icon cache
       Footer.swift              the Open / Actions pill
     UI/
-      Views.swift               layout helpers, fills, glass
+      Views.swift               layout helpers, fills, glass or solid surfaces
       Buttons.swift             hover, footer and symbol buttons
 scripts/                        icon, one-colour logo, font and DMG builders
 .github/workflows/release.yml   builds the DMG and publishes a release for each version tag
