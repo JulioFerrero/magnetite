@@ -109,17 +109,6 @@ cd magnetite
 
 Magnetite adds itself to Login Items on first run; turn that off in System Settings → General → Login Items.
 
-## Releasing
-
-Push a version tag. GitHub Actions builds the app and the DMG, then publishes a release with install steps and the commits since the last version:
-
-```sh
-git tag v1.1.0
-git push origin v1.1.0
-```
-
-Or from GitHub: **Actions → Release → Run workflow**, and type the version. `./build.sh dmg` builds the same DMG locally, in `build/`.
-
 ## The name and the stone
 
 Magnetite is lodestone, the naturally magnetic mineral: it pulls things to it, the way this pulls your apps to you. In nature it grows as **octahedra**: opaque, iron-black, with a metallic luster and often faint triangular growth lines on each face. The icon is exactly that, drawn from a real 3D octahedron and lit like polished iron. There's also a one-colour mark:
@@ -159,7 +148,6 @@ Sources/
       Views.swift               layout helpers, fills, glass or solid surfaces
       Buttons.swift             hover, footer and symbol buttons
 scripts/                        icon, one-colour logo, font and DMG builders
-.github/workflows/release.yml   builds the DMG and publishes a release for each version tag
 ```
 
 `swift build` compiles it; `./build.sh` wraps it into `Magnetite.app`. Every size and colour lives in `Sources/Magnetite/Theme.swift`.
