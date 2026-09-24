@@ -5,7 +5,7 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
     let table = ListTable()
     var onForget: ((AppEntry?) -> Void)?
     var running: Set<String> = [] { didSet { table.reloadData(forRowIndexes: IndexSet(integersIn: Range(table.rows(in: table.visibleRect)) ?? 0..<0), columnIndexes: [0]) } }
-    private(set) var state = LauncherState()
+    private var state = LauncherState()
     private let scrollView = NSScrollView(), fade = CAGradientLayer(), icons = IconCache()
     private let emptyLabel = NSTextField(labelWithAttributedString: Theme.text("No Results", Theme.emptyFont, Theme.secondaryText))
     func prewarm(_ apps: [AppEntry]) { icons.prewarm(apps) }
@@ -16,6 +16,7 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
         table.addTableColumn(NSTableColumn(identifier: .init("app")))
         (table.headerView, table.style, table.backgroundColor, table.intercellSpacing, table.refusesFirstResponder) = (nil, .plain, .clear, .zero, true)
         (table.dataSource, table.delegate, scrollView.documentView) = (self, self, table)
+        table.addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: table))
         (scrollView.drawsBackground, scrollView.hasVerticalScroller, scrollView.scrollerStyle, scrollView.automaticallyAdjustsContentInsets) = (false, true, .overlay, false)
         scrollView.contentInsets = NSEdgeInsets(top: Theme.listTopInset, left: 0, bottom: Theme.listBottomInset, right: 0)
         NotificationCenter.default.addObserver(self, selector: #selector(updateFade), name: NSView.boundsDidChangeNotification, object: scrollView.contentView)
@@ -25,25 +26,25 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
         emptyLabel.place(in: self, centerX: 0, centerY: (Theme.headerHeight - Theme.footerHeight) / 2)
     }
     func reload(_ state: LauncherState) {
-        self.state = state
-        emptyLabel.isHidden = !state.rows.isEmpty
-        table.reloadData()
+        let rows = IndexSet(integersIn: 0..<state.rows.count)
+        (self.state, emptyLabel.isHidden) = (state, !rows.isEmpty)
+        table.noteNumberOfRowsChanged()
+        instantly { table.noteHeightOfRows(withIndexesChanged: rows) }
+        table.reloadData(forRowIndexes: rows, columnIndexes: [0])
+        update(state)
         scrollView.contentView.scroll(to: NSPoint(x: 0, y: -Theme.listTopInset))
         scrollView.reflectScrolledClipView(scrollView.contentView)
         updateFade()
     }
     func update(_ state: LauncherState) {
-        let old = self.state
         self.state = state
-        for row in [old.selected, old.hovered, state.selected, state.hovered].compactMap({ $0 }) where row < table.numberOfRows {
-            (table.rowView(atRow: row, makeIfNecessary: false) as? RowView)?.highlight = highlight(row)
-        }
+        table.enumerateAvailableRowViews { ($0 as? RowView)?.highlight = highlight($1) }
     }
     @objc private func updateFade() {
         let h = bounds.height, clip = scrollView.contentView.bounds, header = Theme.headerHeight
         guard h > 0 else { return }
         let top = min(1, max(0, (clip.minY + Theme.listTopInset) / 32)), bottom = min(1, max(0, (table.frame.height + Theme.listBottomInset - clip.height - clip.minY) / 32))
-        CATransaction.instantly {
+        instantly {
             fade.frame = bounds
             fade.locations = [0, Theme.bottomFadeHeight / h, 1 - Theme.topFadeHeight / h, 1 - header / h, 1 - (header - 16) / h, 1].map { NSNumber(value: $0) }
             fade.colors = [1 - bottom * 0.75, 1, 1, 1 - top * 0.75, 1 - top, 1 - top].map { NSColor(white: 0, alpha: $0).cgColor }
@@ -77,14 +78,9 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
 
 final class ListTable: NSTableView {
     var onHover: ((Int?) -> Void)?, onClick: ((Int) -> Void)?
-    private lazy var hoverArea = NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self)
     override func mouseMoved(with event: NSEvent) { onHover?(row(for: event)) }
     override func mouseExited(with event: NSEvent) { onHover?(nil) }
     override func mouseDown(with event: NSEvent) { onClick?(row(for: event)) }
-    override func updateTrackingAreas() {
-        super.updateTrackingAreas()
-        if !trackingAreas.contains(hoverArea) { addTrackingArea(hoverArea) }
-    }
     private func row(for event: NSEvent) -> Int { row(at: convert(event.locationInWindow, from: nil)) }
 }
 
@@ -101,7 +97,7 @@ final class RowView: NSTableRowView {
 final class AppCell: NSTableCellView {
     static let identifier = NSUserInterfaceItemIdentifier("app")
     let icon = NSImageView(), title = NSTextField(labelWithString: ""), runningDot = FillView(color: Theme.tertiaryText, radius: Theme.runningDotSize / 2)
-    private let removeButton = SymbolButton(symbol: "xmark")
+    private let removeButton = RemoveButton()
     var onRemove: (() -> Void)? { didSet { (removeButton.onClick, removeButton.isHidden) = (onRemove, onRemove == nil) } }
     convenience init() {
         self.init(frame: .zero)

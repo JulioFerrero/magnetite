@@ -40,16 +40,12 @@ final class FooterButton: HoverButton {
     }
 }
 
-final class SymbolButton: HoverButton {
-    private var symbol = NSImage()
-    convenience init(symbol: String) {
-        self.init(frame: .zero)
-        self.symbol = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)!.withSymbolConfiguration(.init(pointSize: 10, weight: .semibold))!
-    }
+final class RemoveButton: HoverButton {
+    private static let symbol = NSImage(systemSymbolName: "xmark", accessibilityDescription: nil)!.withSymbolConfiguration(.init(pointSize: 10, weight: .semibold))!
     override func draw(_ dirtyRect: NSRect) {
         if isHovered { bounds.fill(Theme.selection, radius: Theme.keyCapRadius) }
-        let size = symbol.size, tinted = NSImage(size: size, flipped: false) { rect in
-            self.symbol.draw(in: rect)
+        let size = Self.symbol.size, tinted = NSImage(size: size, flipped: false) { rect in
+            Self.symbol.draw(in: rect)
             (self.isHovered ? Theme.primaryText : Theme.tertiaryText).set()
             rect.fill(using: .sourceIn)
             return true

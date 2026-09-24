@@ -52,11 +52,10 @@ extension NSRect {
     }
 }
 
-extension CATransaction {
-    static func instantly(_ changes: () -> Void) {
-        begin()
-        setDisableActions(true)
+func instantly(_ changes: () -> Void) {
+    NSAnimationContext.runAnimationGroup { context in
+        context.duration = 0
+        CATransaction.setDisableActions(true)
         changes()
-        commit()
     }
 }

@@ -61,7 +61,7 @@ final class ShadowView: NSView {
         let card = CGPath(roundedRect: bounds, cornerWidth: Theme.cornerRadius, cornerHeight: Theme.cornerRadius, transform: nil), outside = CGMutablePath()
         outside.addRect(bounds.insetBy(dx: -200, dy: -200))
         outside.addPath(card)
-        CATransaction.instantly {
+        instantly {
             layer?.sublayers?.forEach { ($0.frame, $0.shadowPath) = (bounds, card) }
             (cutout.frame, cutout.path) = (bounds, outside)
         }

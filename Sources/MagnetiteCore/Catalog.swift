@@ -9,13 +9,12 @@ public enum Catalog {
     public typealias Stamps = [String: Date]
     private static let roots = ["/Applications", "/System/Applications", "/System/Library/CoreServices/Applications",
                                 NSString(string: "~/Applications").expandingTildeInPath].map { URL(fileURLWithPath: $0) }
-    public static func isUnchanged(_ stamps: Stamps) -> Bool {
-        !stamps.isEmpty && stamps.allSatisfy { (try? FileManager.default.attributesOfItem(atPath: $0.key)[.modificationDate] as? Date) == $0.value }
-    }
+    private static func modified(_ path: String) -> Date? { try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date }
+    public static func isUnchanged(_ stamps: Stamps) -> Bool { !stamps.isEmpty && stamps.allSatisfy { modified($0.key) == $0.value } }
     public static func scan() -> (apps: [AppEntry], stamps: Stamps) {
         let fm = FileManager.default
         var seenPaths = Set<String>(), seenIDs = Set<String>(), apps: [AppEntry] = [], stamps: Stamps = [:]
-        func stamp(_ url: URL) { stamps[url.path] = try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate }
+        func stamp(_ url: URL) { stamps[url.path] = modified(url.path) }
         func add(_ url: URL) {
             let url = url.resolvingSymlinksInPath()
             guard seenPaths.insert(url.path).inserted, fm.fileExists(atPath: url.path) else { return }
@@ -27,7 +26,7 @@ public enum Catalog {
             apps.append(AppEntry(url: url, name: name, id: bundleID ?? url.path, searchKeys: keys.map(SearchKey.init)))
         }
         for root in roots {
-            guard let walker = fm.enumerator(at: root, includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey], options: .skipsPackageDescendants) else { continue }
+            guard let walker = fm.enumerator(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsPackageDescendants) else { continue }
             stamp(root)
             for case let url as URL in walker {
                 if url.lastPathComponent.hasPrefix(".") || url.pathExtension == "app" {
