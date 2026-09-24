@@ -5,8 +5,8 @@ APP=build/Magnetite.app
 VERSION=${VERSION:-$(git describe --tags --abbrev=0 2>/dev/null || echo 0.0.0)}
 VERSION=${VERSION#v}
 rm -rf "$APP" && mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-swift build -c release --arch arm64
-cp "$(swift build -c release --arch arm64 --show-bin-path)/Magnetite" "$APP/Contents/MacOS/"
+swift build -c release --arch arm64 --arch x86_64
+cp "$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/Magnetite" "$APP/Contents/MacOS/"
 [ -f build/AppIcon.icns ] || scripts/make-icon.sh
 cp Resources/Info.plist "$APP/Contents/"
 plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"

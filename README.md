@@ -38,13 +38,13 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | Memory (Activity Monitor footprint, idle) | **23 MB** | 338 MB |
 | Idle CPU (60 s sample) | **0.00 %** | 1.4 % |
 | Processes / threads | **1 / 4** | 4 / 81 |
-| App size | **1.9 MB** ¹ | 208 MB |
+| App size | **2.2 MB** ¹ | 208 MB |
 | Data it keeps on disk | **< 1 KB** | 193 MB |
 | Cold start → window on screen | **0.28 s** | 1.29 s |
 | Hotkey → window on screen (median of 30) | ~24 ms | **~18–22 ms** ² |
 | Search, per keystroke (112 apps) | **< 1 ms** | – |
 
-¹ 1.2 MB of that is the icon: the metal gradients are dithered to avoid banding, and dithering doesn't compress. The code is 350 KB, the trimmed font 340 KB.
+¹ 1.2 MB of that is the icon: the metal gradients are dithered to avoid banding, and dithering doesn't compress. The code is 700 KB (one copy for Apple silicon, one for Intel), the trimmed font 340 KB.
 ² Raycast wins by a few milliseconds here: it reads every key press through an event tap, which needs Accessibility permission. Magnetite uses a plain system hotkey, which needs none. Its own work per open is about 5 ms, most of it macOS moving keyboard focus; the rest is the key's trip through the system and the display's next frame.
 
 <details>
@@ -95,7 +95,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 
 ## Install
 
-Download **Magnetite-x.y.z.dmg** from the [latest release](https://github.com/JulioFerrero/magnetite/releases/latest), open it and drag Magnetite to Applications. It runs on macOS 14 or later on Apple silicon: with Liquid Glass on macOS 26 and later, and a solid background on 14 and 15.
+Download **Magnetite-x.y.z.dmg** from the [latest release](https://github.com/JulioFerrero/magnetite/releases/latest), open it and drag Magnetite to Applications. It runs on macOS 14 or later, on Apple silicon and Intel Macs: with Liquid Glass on macOS 26 and later, and a solid background on 14 and 15.
 
 The app isn't notarized (that needs a paid Apple developer account), so the first time you open it macOS says it can't check it. Go to System Settings → Privacy & Security, scroll down and click **Open Anyway**. You only do this once.
 

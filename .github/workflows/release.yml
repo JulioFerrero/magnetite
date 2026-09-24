@@ -43,7 +43,7 @@ jobs:
             echo "2. Open Magnetite. macOS says it can't check the app, because it isn't notarized: go to System Settings → Privacy & Security, scroll down and click **Open Anyway**. You only do this once."
             echo "3. Press ⌘Space. If Spotlight opens instead, turn off its shortcut in System Settings → Keyboard → Keyboard Shortcuts → Spotlight."
             echo
-            echo "Runs on macOS 14 or later on Apple silicon: Liquid Glass on macOS 26 and later, a solid background on 14 and 15."
+            echo "Runs on macOS 14 or later, on Apple silicon and Intel Macs: Liquid Glass on macOS 26 and later, a solid background on 14 and 15."
             echo
             echo "## Changes"
             echo
