@@ -64,6 +64,7 @@ enum Theme {
     static let headerInset: CGFloat = 16
     static let headerGap: CGFloat = 12
     static let logoSize: CGFloat = 22
+    static let searchFieldHeight: CGFloat = 32
     static let searchFont = inter(18, weight: 350)
     static let placeholder = "Search for apps…"
 

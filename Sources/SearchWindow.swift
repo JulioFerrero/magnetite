@@ -26,6 +26,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
     private var chrome: [NSView] = []
     private var lens: NSGlassEffectView?
     private let field = NSTextField()
+    private let placeholder = NSTextField(labelWithString: "")
     private let table = ListTable()
     private let scrollView = NSScrollView()
     private let listContainer = NSView()
@@ -186,6 +187,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         }
         selected = rows.firstIndex(where: \.isApp)
         hovered = nil
+        placeholder.isHidden = !field.stringValue.isEmpty
         table.reloadData()
         moveLens(animated: false)
         scrollView.contentView.scroll(to: NSPoint(x: 0, y: -Theme.listTopInset))
@@ -401,10 +403,10 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         windowContent.onClickOutside = { [weak self] in self?.hide() }
         panel.contentView = windowContent
 
-        let logo = NSImageView(image: NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil)!)
-        logo.symbolConfiguration = .init(pointSize: 17, weight: .medium)
-        logo.contentTintColor = Theme.tertiaryText
+        let logo = LogoMark()
 
+        field.cell = SearchFieldCell(textCell: "")
+        field.isEditable = true
         field.isBezeled = false
         field.isBordered = false
         field.drawsBackground = false
@@ -413,7 +415,10 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         field.textColor = Theme.primaryText
         field.cell?.usesSingleLineMode = true
         field.cell?.isScrollable = true
-        field.placeholderAttributedString = Theme.text(Theme.placeholder, Theme.searchFont, Theme.tertiaryText, kern: -0.1)
+        // Our own placeholder: while editing, AppKit's field editor draws its
+        // placeholder ~3.5pt above where it lays out typed text, clipping tall
+        // letters and missing the caret. This label sits on the typed baseline.
+        placeholder.attributedStringValue = Theme.text(Theme.placeholder, Theme.searchFont, Theme.tertiaryText, kern: 0) // typed text has no kern
         field.delegate = self
 
         let column = NSTableColumn(identifier: .init("main"))
@@ -466,7 +471,7 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
         )
         let pillWidth = openButton.intrinsicContentSize.width + actionsButton.intrinsicContentSize.width + 2 * Theme.pillPadding
 
-        for view in [listContainer, logo, field, emptyLabel, pillHost] {
+        for view in [listContainer, logo, placeholder, field, emptyLabel, pillHost] {
             view.translatesAutoresizingMaskIntoConstraints = false
             root.addSubview(view)
         }
@@ -481,6 +486,15 @@ final class SearchController: NSObject, NSTextFieldDelegate, NSTableViewDataSour
                 field.leadingAnchor.constraint(equalTo: logo.trailingAnchor, constant: Theme.headerGap),
                 field.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -Theme.headerInset),
                 field.centerYAnchor.constraint(equalTo: root.topAnchor, constant: headerCenter),
+                field.heightAnchor.constraint(equalToConstant: Theme.searchFieldHeight),
+
+                placeholder.leadingAnchor.constraint(equalTo: field.leadingAnchor),
+                placeholder.trailingAnchor.constraint(lessThanOrEqualTo: field.trailingAnchor),
+                placeholder.firstBaselineAnchor.constraint(
+                    equalTo: root.topAnchor,
+                    constant: headerCenter - Theme.searchFieldHeight / 2
+                        + SearchFieldCell.line(fieldHeight: Theme.searchFieldHeight, font: Theme.searchFont).baseline
+                ),
 
                 emptyLabel.centerXAnchor.constraint(equalTo: root.centerXAnchor),
                 emptyLabel.centerYAnchor.constraint(
@@ -621,6 +635,66 @@ final class LauncherPanel: NSPanel {
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+}
+
+// MARK: - Search bar
+
+/// Centres the field editor's line box vertically in the field, so typed text
+/// and the caret sit on the search bar's centre line. Uses the layout manager's
+/// own line metrics, the ones the field editor lays out with.
+final class SearchFieldCell: NSTextFieldCell {
+    private static let layout = NSLayoutManager()
+
+    /// Top of the line box, and its baseline, measured from the field's top.
+    static func line(fieldHeight: CGFloat, font: NSFont) -> (top: CGFloat, baseline: CGFloat) {
+        let top = ((fieldHeight - layout.defaultLineHeight(for: font)) / 2).rounded()
+        return (top, top + layout.defaultBaselineOffset(for: font))
+    }
+
+    private func lineBox(in rect: NSRect) -> NSRect {
+        guard let font else { return rect }
+        let top = Self.line(fieldHeight: rect.height, font: font).top
+        return NSRect(x: rect.minX, y: rect.minY + top, width: rect.width, height: Self.layout.defaultLineHeight(for: font))
+    }
+
+    override func drawingRect(forBounds rect: NSRect) -> NSRect {
+        lineBox(in: super.drawingRect(forBounds: rect))
+    }
+
+    override func edit(withFrame rect: NSRect, in controlView: NSView, editor textObj: NSText, delegate: Any?, event: NSEvent?) {
+        super.edit(withFrame: lineBox(in: rect), in: controlView, editor: textObj, delegate: delegate, event: event)
+    }
+
+    override func select(withFrame rect: NSRect, in controlView: NSView, editor textObj: NSText, delegate: Any?, start selStart: Int, length selLength: Int) {
+        super.select(withFrame: lineBox(in: rect), in: controlView, editor: textObj, delegate: delegate, start: selStart, length: selLength)
+    }
+}
+
+/// The one-colour Magnetite mark (scripts/make-logo.swift with gap 36, which
+/// stays legible at 22pt), where Raycast shows its logo.
+final class LogoMark: NSView {
+    private static let faces: [[NSPoint]] = [
+        [(274.3, 87.5), (337.8, 279.7), (440.4, 219.1)],
+        [(231.8, 73.7), (75.3, 274.6), (302.4, 287.1)],
+        [(321.5, 385.3), (399.7, 285.0), (342.8, 318.5)],
+        [(264.4, 445.7), (303.5, 323.2), (95.5, 311.8)],
+    ].map { $0.map { NSPoint(x: $0.0, y: $0.1) } }
+
+    override var isFlipped: Bool { true } // the coordinates are SVG's, top-down
+
+    override func draw(_ dirtyRect: NSRect) {
+        let scale = bounds.width / 512
+        Theme.tertiaryText.setFill()
+        let path = NSBezierPath()
+        for face in Self.faces {
+            path.move(to: NSPoint(x: face[0].x * scale, y: face[0].y * scale))
+            face.dropFirst().forEach { path.line(to: NSPoint(x: $0.x * scale, y: $0.y * scale)) }
+            path.close()
+        }
+        path.fill()
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }
 
 // MARK: - List

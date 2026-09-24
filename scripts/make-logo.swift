@@ -1,10 +1,12 @@
 // Writes the one-colour Magnetite mark as SVG: the same octahedron as the app
 // icon (same turn), its four visible faces as solid shapes separated by even gaps.
-// usage: swift make-logo.swift <out.svg> <hex colour, e.g. 111111>
+// usage: swift make-logo.swift <out.svg> <hex colour, e.g. 111111> [gap, default 22]
+// (Small renderings want a wider gap: the search bar's 22pt mark uses 36.)
 import Foundation
 
 let out = CommandLine.arguments[1]
 let fill = "#" + CommandLine.arguments[2]
+let gap = CommandLine.arguments.count > 3 ? Double(CommandLine.arguments[3])! : 22
 
 struct V { var x, y, z: Double }
 func - (a: V, b: V) -> V { V(x: a.x - b.x, y: a.y - b.y, z: a.z - b.z) }
@@ -46,7 +48,7 @@ func inset(_ t: [(Double, Double)], gap: Double) -> [(Double, Double)] {
 var svg = #"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">"# + "\n"
 svg += "  <g fill=\"\(fill)\" stroke=\"\(fill)\" stroke-width=\"6\" stroke-linejoin=\"round\">\n"
 for f in visible {
-    let pts = inset(f.map { screen(turned[$0]) }, gap: 22)
+    let pts = inset(f.map { screen(turned[$0]) }, gap: gap)
     svg += "    <polygon points=\"" + pts.map { String(format: "%.1f,%.1f", $0.0, $0.1) }.joined(separator: " ") + "\"/>\n"
 }
 svg += "  </g>\n</svg>\n"
