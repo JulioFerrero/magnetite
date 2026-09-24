@@ -65,7 +65,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | | **Magnetite** | Raycast 2 |
 |---|---|---|
 | What it does | Finds and opens apps | Launcher + extensions, AI, clipboard, snippets, windows, … |
-| Built with | Swift + AppKit, ~1,800 lines, no dependencies | Native shell, web UI, separate backend process |
+| Built with | Swift + AppKit, ~1,200 lines, no dependencies | Native shell, web UI, separate backend process |
 | Permissions | None | Accessibility for some features |
 | Network | Never connects | Store, sync, AI |
 | Account | None | Optional |
