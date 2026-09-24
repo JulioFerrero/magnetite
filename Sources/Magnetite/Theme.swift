@@ -1,28 +1,10 @@
 import AppKit
 
-enum Look: String, CaseIterable, Identifiable {
-    case raycast, glass, performance
-    static var current: Look {
-        get { Look(rawValue: UserDefaults.standard.string(forKey: "theme") ?? "") ?? .raycast }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: "theme") }
-    }
-    var id: String { rawValue }
-    var title: String { rawValue.capitalized }
-    var summary: String {
-        ["raycast": "Dark-tinted Liquid Glass and a soft shadow, like Raycast 2.", "glass": "Clear Liquid Glass with a glass selection that slides between rows.",
-         "performance": "Solid background, no blur and no shadow. Lightest on the GPU."][rawValue]!
-    }
-    var glassStyle: NSGlassEffectView.Style { self == .glass ? .clear : .regular }
-    var margin: NSEdgeInsets { self == .performance ? NSEdgeInsets() : Theme.shadowMargin }
-    var panelSize: NSSize { NSSize(width: Theme.windowSize.width + margin.left + margin.right, height: Theme.windowSize.height + margin.top + margin.bottom) }
-}
-
 enum Theme {
     static let windowSize = NSSize(width: 750, height: 475), shadowMargin = NSEdgeInsets(top: 50, left: 80, bottom: 110, right: 80)
-    static let cornerRadius = 26.0, topOffsetRatio = 0.22, selectionAnimation = 0.16, suggestionCount = 5
-    static let glassTint = dynamic(NSColor(white: 0, alpha: 0.40), NSColor(white: 1, alpha: 0.40)), clearGlassTint = dynamic(NSColor(white: 0, alpha: 0.55), NSColor(white: 1, alpha: 0.62))
-    static let solidBackground = dynamic(NSColor(white: 0x26 / 255.0, alpha: 1), .white), solidPill = dynamic(NSColor(white: 0x33 / 255.0, alpha: 1), NSColor(white: 0xF2 / 255.0, alpha: 1))
-    static let solidBorder = dynamic(NSColor(white: 1, alpha: 0.10), NSColor(white: 0, alpha: 0.10)), windowBorder = dynamic(fg(0.10), .clear)
+    static let panelSize = NSSize(width: windowSize.width + shadowMargin.left + shadowMargin.right, height: windowSize.height + shadowMargin.top + shadowMargin.bottom)
+    static let cornerRadius = 26.0, topOffsetRatio = 0.22, suggestionCount = 5
+    static let glassTint = dynamic(NSColor(white: 0, alpha: 0.40), NSColor(white: 1, alpha: 0.40)), windowBorder = dynamic(fg(0.10), .clear)
     static let headerHeight = 64.0, headerInset = 16.0, headerGap = 12.0, logoSize = 22.0, searchFieldHeight = 32.0
     static let searchFont = inter(18, weight: 350), placeholder = "Search for apps…"
     static let listTopInset = headerHeight + 8, listBottomInset = footerHeight + 16, topFadeHeight = 96.0, bottomFadeHeight = 72.0

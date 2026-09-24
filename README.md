@@ -44,7 +44,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | Hotkey → window on screen (median of 30) | ~24 ms | **~18–22 ms** ² |
 | Search, per keystroke (112 apps) | **< 1 ms** | – |
 
-¹ 1.2 MB of that is the icon: the metal gradients are dithered to avoid banding, and dithering doesn't compress. The code is 370 KB, the trimmed font 340 KB.
+¹ 1.2 MB of that is the icon: the metal gradients are dithered to avoid banding, and dithering doesn't compress. The code is 350 KB, the trimmed font 340 KB.
 ² Raycast wins by a few milliseconds here: it reads every key press through an event tap, which needs Accessibility permission. Magnetite uses a plain system hotkey, which needs none. Its own work per open is about 5 ms, most of it macOS moving keyboard focus; the rest is the key's trip through the system and the display's next frame.
 
 <details>
@@ -65,7 +65,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | | **Magnetite** | Raycast 2 |
 |---|---|---|
 | What it does | Finds and opens apps | Launcher + extensions, AI, clipboard, snippets, windows, … |
-| Built with | Swift + AppKit, under 1,000 lines, no dependencies | Native shell, web UI, separate backend process |
+| Built with | Swift + AppKit, about 860 lines, no dependencies | Native shell, web UI, separate backend process |
 | Permissions | None | Accessibility for some features |
 | Network | Never connects | Store, sync, AI |
 | Account | None | Optional |
@@ -78,8 +78,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 - **Suggestions you control**: your most used apps with an empty query; × removes one, Clear wipes them all.
 - **Every app, even the hidden ones**: `/Applications`, `/System/Applications`, `~/Applications` (Chrome web apps included) and system folders, including Safari's hidden cryptex symlink.
 - **Running apps** get a small dot under their icon.
-- **Three themes**: Raycast (tinted Liquid Glass), Glass (clear Liquid Glass with a glass selection that slides between rows) and Performance (solid, no blur, no shadow).
-- **Any shortcut**: record a new one in Settings; it applies instantly.
+- **Any shortcut**: press ⌘, then the new combination; it applies instantly.
 
 ## Keys
 
@@ -90,7 +89,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | ↩ | open |
 | ⌘↩ | show in Finder |
 | ⌘K | actions |
-| ⌘, | settings |
+| ⌘, | change the shortcut |
 | Esc | clear the search, then close |
 | ⌘Q | quit |
 
@@ -117,7 +116,7 @@ Magnetite is lodestone, the naturally magnetic mineral: it pulls things to it, t
 
 ## Project
 
-A SwiftPM package with two modules. `MagnetiteCore` is the logic, with no UI: it finds apps, ranks them and turns a query into a `LauncherState`. `Magnetite` is the AppKit app that renders that state. The whole thing is under 1,000 lines of Swift.
+A SwiftPM package with two modules. `MagnetiteCore` is the logic, with no UI: it finds apps, ranks them and turns a query into a `LauncherState`. `Magnetite` is the AppKit app that renders that state. The whole thing is about 860 lines of Swift.
 
 ```
 Package.swift
@@ -131,13 +130,13 @@ Sources/
   Magnetite/
     main.swift                  app delegate, login item, menus
     HotKey.swift                global hotkey (Carbon, no permissions)
-    Theme.swift                 every size, colour and font, and the three themes
-    Settings.swift              shortcut recorder and theme picker
+    Theme.swift                 every size, colour and font
+    ShortcutPrompt.swift        "press a new shortcut" dialog
     Launcher/
       LauncherController.swift  show, hide, keys and actions; wires the parts
-      LauncherWindow.swift      the panel, its glass or solid card and shadow
+      LauncherWindow.swift      the panel, its glass card and shadow
       SearchBar.swift           field, placeholder and mark on one baseline
-      ResultsList.swift         rows, glass selection, edge fades, icon cache
+      ResultsList.swift         rows, selection, edge fades, icon cache
       Footer.swift              the Open / Actions pill
     UI/
       Views.swift               layout helpers, fills, glass

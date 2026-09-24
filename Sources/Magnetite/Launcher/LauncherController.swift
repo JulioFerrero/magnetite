@@ -3,7 +3,7 @@ import Carbon.HIToolbox
 import MagnetiteCore
 
 final class LauncherController: NSObject, NSWindowDelegate {
-    var onOpenSettings: (() -> Void)?
+    var onChangeShortcut: (() -> Void)?
     private let window = LauncherWindow(), bar = SearchBar(), list = ResultsList(), footer = Footer(), history = History()
     private let scanQueue = DispatchQueue(label: "magnetite.scan", qos: .userInitiated, autoreleaseFrequency: .workItem)
     private var state = LauncherState(), apps: [AppEntry] = [], stamps: Catalog.Stamps = [:], isShown = false
@@ -23,8 +23,9 @@ final class LauncherController: NSObject, NSWindowDelegate {
             self?.reload()
         }
         (footer.openButton.onClick, footer.actionsButton.onClick) = ({ [weak self] in self?.openSelected() }, { [weak self] in self?.showActions() })
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] in self?.handleKey($0) ?? $0 }
-        apply(.current)
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [unowned self] in self.handleKey($0) }
+        window.contentView?.layoutSubtreeIfNeeded()
+        window.park()
         runningObservation = NSWorkspace.shared.observe(\.runningApplications, options: .initial) { [weak self] workspace, _ in
             let ids = Set(workspace.runningApplications.compactMap(\.bundleIdentifier))
             DispatchQueue.main.async { self?.list.running = ids }
@@ -42,15 +43,6 @@ final class LauncherController: NSObject, NSWindowDelegate {
         isShown = false
         window.park()
         DispatchQueue.main.async { self.bar.clear() }
-    }
-    func apply(_ look: Look) {
-        hide()
-        window.apply(look)
-        footer.apply(look)
-        list.apply(look)
-        window.contentView?.layoutSubtreeIfNeeded()
-        reload()
-        window.park()
     }
     private func refreshIndex() {
         scanQueue.async { [self, stamps] in
@@ -73,7 +65,7 @@ final class LauncherController: NSObject, NSWindowDelegate {
     private func select(_ row: Int, open: Bool = false) {
         guard state.app(at: row) != nil else { return }
         state.selected = row
-        list.update(state, animated: true)
+        list.update(state)
         if open { openSelected() }
     }
     private func hover(_ row: Int?) {
@@ -96,9 +88,9 @@ final class LauncherController: NSObject, NSWindowDelegate {
         hide()
         NSWorkspace.shared.activateFileViewerSelecting([app.url])
     }
-    @objc private func openSettings() {
+    @objc private func changeShortcut() {
         hide()
-        onOpenSettings?()
+        onChangeShortcut?()
     }
     private func showActions() {
         let menu = NSMenu()
@@ -108,7 +100,7 @@ final class LauncherController: NSObject, NSWindowDelegate {
             (item.target, item.keyEquivalentModifierMask, item.isEnabled) = (self, mask, state.selectedApp != nil)
         }
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",").target = self
+        menu.addItem(withTitle: "Change Shortcut…", action: #selector(changeShortcut), keyEquivalent: ",").target = self
         menu.addItem(withTitle: "Quit Magnetite", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: footer.actionsButton.bounds.height + menu.size.height + 6), in: footer.actionsButton)
     }
@@ -128,7 +120,7 @@ final class LauncherController: NSObject, NSWindowDelegate {
         switch (Int(event.keyCode), event.modifierFlags.intersection([.command, .option, .control, .shift])) {
         case (kVK_Return, .command), (kVK_ANSI_KeypadEnter, .command): revealSelected()
         case (kVK_ANSI_K, .command): showActions()
-        case (kVK_ANSI_Comma, .command): openSettings()
+        case (kVK_ANSI_Comma, .command): changeShortcut()
         case (kVK_ANSI_J, .control): move(by: 1)
         case (kVK_ANSI_K, .control): move(by: -1)
         default: return event

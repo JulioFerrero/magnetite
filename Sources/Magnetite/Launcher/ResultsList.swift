@@ -8,7 +8,6 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
     private(set) var state = LauncherState()
     private let scrollView = NSScrollView(), fade = CAGradientLayer(), icons = IconCache()
     private let emptyLabel = NSTextField(labelWithAttributedString: Theme.text("No Results", Theme.emptyFont, Theme.secondaryText))
-    private var lens: NSGlassEffectView?
     func prewarm(_ apps: [AppEntry]) { icons.prewarm(apps) }
     func numberOfRows(in tableView: NSTableView) -> Int { state.rows.count }
     private func highlight(_ row: Int) -> RowView.Highlight { row == state.selected ? .selected : row == state.hovered ? .hovered : .none }
@@ -25,35 +24,19 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
         scrollView.fill(self)
         emptyLabel.place(in: self, centerX: 0, centerY: (Theme.headerHeight - Theme.footerHeight) / 2)
     }
-    func apply(_ look: Look) {
-        lens?.removeFromSuperview()
-        lens = look == .glass ? NSGlassEffectView(style: .regular, radius: Theme.rowRadius) : nil
-        if let lens { table.addSubview(lens, positioned: .below, relativeTo: nil) }
-    }
     func reload(_ state: LauncherState) {
         self.state = state
         emptyLabel.isHidden = !state.rows.isEmpty
         table.reloadData()
-        moveLens(animated: false)
         scrollView.contentView.scroll(to: NSPoint(x: 0, y: -Theme.listTopInset))
         scrollView.reflectScrolledClipView(scrollView.contentView)
         updateFade()
     }
-    func update(_ state: LauncherState, animated: Bool = false) {
+    func update(_ state: LauncherState) {
         let old = self.state
         self.state = state
         for row in [old.selected, old.hovered, state.selected, state.hovered].compactMap({ $0 }) where row < table.numberOfRows {
             (table.rowView(atRow: row, makeIfNecessary: false) as? RowView)?.highlight = highlight(row)
-        }
-        if animated { moveLens(animated: true) }
-    }
-    private func moveLens(animated: Bool) {
-        guard let lens else { return }
-        lens.isHidden = state.selected == nil
-        guard let selected = state.selected else { return }
-        NSAnimationContext.runAnimationGroup { context in
-            (context.duration, context.timingFunction) = (animated && lens.frame != .zero ? Theme.selectionAnimation : 0, CAMediaTimingFunction(name: .easeOut))
-            lens.animator().frame = table.rect(ofRow: selected).insetBy(dx: Theme.rowMargin, dy: 0)
         }
     }
     @objc private func updateFade() {
@@ -72,7 +55,7 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
     }
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
         let view = tableView.makeView(withIdentifier: RowView.identifier, owner: nil) as? RowView ?? RowView()
-        (view.identifier, view.highlight, view.drawsSelection) = (RowView.identifier, highlight(row), lens == nil)
+        (view.identifier, view.highlight) = (RowView.identifier, highlight(row))
         return view
     }
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
@@ -109,9 +92,8 @@ final class RowView: NSTableRowView {
     enum Highlight { case none, hovered, selected }
     static let identifier = NSUserInterfaceItemIdentifier("row")
     var highlight = Highlight.none { didSet { if highlight != oldValue { needsDisplay = true } } }
-    var drawsSelection = true
     override func drawBackground(in dirtyRect: NSRect) {
-        guard highlight == .hovered || (highlight == .selected && drawsSelection) else { return }
+        guard highlight != .none else { return }
         bounds.insetBy(dx: Theme.rowMargin, dy: 0).fill(highlight == .selected ? Theme.selection : Theme.hover, radius: Theme.rowRadius)
     }
 }

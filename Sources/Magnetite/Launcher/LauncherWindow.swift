@@ -2,27 +2,14 @@ import AppKit
 
 final class LauncherWindow: NSPanel {
     let content = NSView(), background = PanelBackground()
-    private var chrome: [NSView] = [], look = Look.current
     override var canBecomeKey: Bool { true }
     init() {
-        super.init(contentRect: NSRect(origin: .zero, size: look.panelSize), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        super.init(contentRect: NSRect(origin: .zero, size: Theme.panelSize), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         (level, collectionBehavior, animationBehavior) = (.modalPanel, [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle], .none)
         (isOpaque, backgroundColor, hasShadow, hidesOnDeactivate, isReleasedWhenClosed, isMovable) = (false, .clear, false, false, false, false)
         (acceptsMouseMovedEvents, contentView) = (true, background)
-    }
-    func apply(_ look: Look) {
-        self.look = look
-        (chrome + [content]).forEach { $0.removeFromSuperview() }
-        setContentSize(look.panelSize)
-        let card = { (view: NSView) in view.fill(self.background, look.margin) }
-        if look == .performance {
-            chrome = [card(NSView())]
-            chrome[0].embed(FillView(color: Theme.solidBackground, radius: Theme.cornerRadius, border: Theme.solidBorder), content)
-        } else {
-            chrome = [card(ShadowView([(28, 72, 0.42), (8, 24, 0.22)])),
-                      card(NSGlassEffectView(style: look.glassStyle, radius: Theme.cornerRadius, tint: look == .glass ? Theme.clearGlassTint : Theme.glassTint, content: content)),
-                      card(FillView(color: .clear, radius: Theme.cornerRadius, border: Theme.windowBorder))]
-        }
+        for card in [ShadowView([(28, 72, 0.42), (8, 24, 0.22)]), NSGlassEffectView(style: .regular, radius: Theme.cornerRadius, tint: Theme.glassTint, content: content),
+                      FillView(color: .clear, radius: Theme.cornerRadius, border: Theme.windowBorder)] { card.fill(background, Theme.shadowMargin) }
         position()
     }
     func reveal(focusing field: NSView) {
@@ -42,8 +29,8 @@ final class LauncherWindow: NSPanel {
     private func position() {
         let mouse = NSEvent.mouseLocation
         guard let area = (NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) } ?? NSScreen.main)?.visibleFrame else { return }
-        let origin = NSPoint(x: (area.midX - Theme.windowSize.width / 2).rounded() - look.margin.left,
-                             y: (area.maxY - area.height * Theme.topOffsetRatio - Theme.windowSize.height).rounded() - look.margin.bottom)
+        let origin = NSPoint(x: (area.midX - Theme.windowSize.width / 2).rounded() - Theme.shadowMargin.left,
+                             y: (area.maxY - area.height * Theme.topOffsetRatio - Theme.windowSize.height).rounded() - Theme.shadowMargin.bottom)
         if frame.origin != origin { setFrameOrigin(origin) }
     }
 }

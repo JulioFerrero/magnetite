@@ -23,12 +23,6 @@ extension NSGlassEffectView {
 }
 
 extension NSView {
-    func embed(_ views: NSView...) {
-        for view in views {
-            (view.translatesAutoresizingMaskIntoConstraints, view.frame, view.autoresizingMask) = (true, bounds, [.width, .height])
-            addSubview(view)
-        }
-    }
     @discardableResult func place(in parent: NSView, top: CGFloat? = nil, bottom: CGFloat? = nil, leading: CGFloat? = nil, trailing: CGFloat? = nil,
                                   centerX: CGFloat? = nil, centerY: CGFloat? = nil, width: CGFloat? = nil, height: CGFloat? = nil) -> Self {
         translatesAutoresizingMaskIntoConstraints = false
