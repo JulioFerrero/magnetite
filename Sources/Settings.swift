@@ -73,7 +73,7 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Open Topaz") {
+                LabeledContent("Open Magnetite") {
                     if model.isRecording {
                         Button("Press a shortcut…") { model.stopRecording() }
                             .buttonStyle(.glassProminent)
@@ -122,7 +122,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         let hosting = NSHostingController(rootView: SettingsView(model: model))
         hosting.sizingOptions = .preferredContentSize
         let window = NSWindow(contentViewController: hosting)
-        window.title = "Topaz Settings"
+        window.title = "Magnetite Settings"
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         super.init(window: window)

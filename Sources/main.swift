@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // which adds milliseconds to every hotkey press. Opt out; idle cost stays 0.
         activity = ProcessInfo.processInfo.beginActivity(
             options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
-            reason: "Show Topaz the instant its hotkey is pressed"
+            reason: "Show Magnetite the instant its hotkey is pressed"
         )
         NSApp.mainMenu = makeMainMenu()
         controller = SearchController()
@@ -42,7 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings?.present()
     }
 
-    /// `open -a Topaz` (or double-clicking the app) while it's running shows the window.
+    /// `open -a Magnetite` (or double-clicking the app) while it's running shows the window.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         controller.show()
         return false
@@ -63,7 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func registerHotKeyAtLaunch() {
         let combo = savedShortcut
         guard !useHotKey(combo) else { return }
-        NSLog("Topaz: %@ is taken by another app; retrying until it's free", combo.spec)
+        NSLog("Magnetite: %@ is taken by another app; retrying until it's free", combo.spec)
         retryTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] timer in
             guard let self, let hotKey = HotKey(combo: combo, action: { [weak self] in self?.controller.toggle() }) else { return }
             self.hotKey = hotKey
@@ -81,7 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try SMAppService.mainApp.register()
             UserDefaults.standard.set(true, forKey: key)
         } catch {
-            NSLog("Topaz: couldn't add login item: %@", error.localizedDescription)
+            NSLog("Magnetite: couldn't add login item: %@", error.localizedDescription)
         }
     }
 
@@ -93,7 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: "Settings…", action: #selector(openSettings), keyEquivalent: ",").target = self
         appMenu.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
-        appMenu.addItem(withTitle: "Quit Topaz", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "Quit Magnetite", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
 

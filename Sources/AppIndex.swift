@@ -120,7 +120,7 @@ enum AppIndex {
 /// App icons rendered once at list size, so scrolling never waits on IconServices.
 final class IconCache {
     private var images: [URL: NSImage] = [:]
-    private let queue = DispatchQueue(label: "topaz.icons", qos: .userInitiated, autoreleaseFrequency: .workItem)
+    private let queue = DispatchQueue(label: "magnetite.icons", qos: .userInitiated, autoreleaseFrequency: .workItem)
     private let size: CGFloat
 
     init(size: CGFloat) { self.size = size }
