@@ -51,7 +51,7 @@ final class SymbolButton: HoverButton {
         let size = symbol.size, tinted = NSImage(size: size, flipped: false) { rect in
             self.symbol.draw(in: rect)
             (self.isHovered ? Theme.primaryText : Theme.tertiaryText).set()
-            rect.fill(using: .sourceAtop)
+            rect.fill(using: .sourceIn)
             return true
         }
         tinted.draw(in: NSRect(origin: NSPoint(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2), size: size))
