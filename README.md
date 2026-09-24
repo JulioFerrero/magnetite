@@ -95,13 +95,30 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 
 ## Install
 
+Download **Magnetite-x.y.z.dmg** from the [latest release](https://github.com/JulioFerrero/magnetite/releases/latest), open it and drag Magnetite to Applications. It needs macOS 26 or later on Apple silicon.
+
+The app isn't notarized (that needs a paid Apple developer account), so the first time you open it macOS says it can't check it. Go to System Settings → Privacy & Security, scroll down and click **Open Anyway**. You only do this once.
+
+Or build it yourself (needs Xcode, for the macOS 26 SDK):
+
 ```sh
 git clone https://github.com/JulioFerrero/magnetite.git
 cd magnetite
 ./build.sh install   # builds, copies to /Applications, starts it
 ```
 
-Needs Xcode (for the macOS 26 SDK). Magnetite adds itself to Login Items on first run; turn that off in System Settings → General → Login Items.
+Magnetite adds itself to Login Items on first run; turn that off in System Settings → General → Login Items.
+
+## Releasing
+
+Push a version tag. GitHub Actions builds the app and the DMG, then publishes a release with install steps and the commits since the last version:
+
+```sh
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+Or from GitHub: **Actions → Release → Run workflow**, and type the version. `./build.sh dmg` builds the same DMG locally, in `build/`.
 
 ## The name and the stone
 
@@ -141,7 +158,8 @@ Sources/
     UI/
       Views.swift               layout helpers, fills, glass
       Buttons.swift             hover, footer and symbol buttons
-scripts/                        icon, one-colour logo and font builders
+scripts/                        icon, one-colour logo, font and DMG builders
+.github/workflows/release.yml   builds the DMG and publishes a release for each version tag
 ```
 
 `swift build` compiles it; `./build.sh` wraps it into `Magnetite.app`. Every size and colour lives in `Sources/Magnetite/Theme.swift`.
