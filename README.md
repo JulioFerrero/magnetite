@@ -65,7 +65,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | | **Magnetite** | Raycast 2 |
 |---|---|---|
 | What it does | Finds and opens apps | Launcher + extensions, AI, clipboard, snippets, windows, … |
-| Built with | Swift + AppKit, ~1,200 lines, no dependencies | Native shell, web UI, separate backend process |
+| Built with | Swift + AppKit, under 1,000 lines, no dependencies | Native shell, web UI, separate backend process |
 | Permissions | None | Accessibility for some features |
 | Network | Never connects | Store, sync, AI |
 | Account | None | Optional |
@@ -117,19 +117,35 @@ Magnetite is lodestone, the naturally magnetic mineral: it pulls things to it, t
 
 ## Project
 
+A SwiftPM package with two modules. `MagnetiteCore` is the logic, with no UI: it finds apps, ranks them and turns a query into a `LauncherState`. `Magnetite` is the AppKit app that renders that state. The whole thing is under 1,000 lines of Swift.
+
 ```
+Package.swift
 Sources/
-  main.swift          app delegate, hotkey, login item, menus
-  SearchWindow.swift  the window: layout, list, keyboard, themes
-  AppIndex.swift      finding apps and rendering their icons
-  Ranker.swift        matching, ranking and usage history
-  Settings.swift      shortcut recorder and theme picker
-  HotKey.swift        global hotkey (Carbon, no permissions)
-  Theme.swift         every size, colour and font
-scripts/              icon, one-colour logo and font builders
+  MagnetiteCore/                no AppKit
+    Catalog.swift               finds apps; skips the rescan when no folder changed
+    Matching.swift              prefix, word-start, acronym and fuzzy scoring
+    History.swift               frecency, per-query picks, forgetting
+    LauncherState.swift         rows, selection and keyboard stepping
+    Shortcut.swift              parses and displays key combos
+  Magnetite/
+    main.swift                  app delegate, login item, menus
+    HotKey.swift                global hotkey (Carbon, no permissions)
+    Theme.swift                 every size, colour and font, and the three themes
+    Settings.swift              shortcut recorder and theme picker
+    Launcher/
+      LauncherController.swift  show, hide, keys and actions; wires the parts
+      LauncherWindow.swift      the panel, its glass or solid card and shadow
+      SearchBar.swift           field, placeholder and mark on one baseline
+      ResultsList.swift         rows, glass selection, edge fades, icon cache
+      Footer.swift              the Open / Actions pill
+    UI/
+      Views.swift               layout helpers, fills, glass
+      Buttons.swift             hover, footer and symbol buttons
+scripts/                        icon, one-colour logo and font builders
 ```
 
-Every size and colour lives in `Sources/Theme.swift`.
+`swift build` compiles it; `./build.sh` wraps it into `Magnetite.app`. Every size and colour lives in `Sources/Magnetite/Theme.swift`.
 
 ## Credits
 

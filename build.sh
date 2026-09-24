@@ -3,7 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 APP=build/Magnetite.app
 rm -rf "$APP" && mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-swiftc -O -swift-version 5 -target arm64-apple-macos26 -sdk "$(xcrun --sdk macosx --show-sdk-path)" Sources/*.swift -o "$APP/Contents/MacOS/Magnetite"
+swift build -c release --arch arm64
+cp "$(swift build -c release --arch arm64 --show-bin-path)/Magnetite" "$APP/Contents/MacOS/"
 [ -f build/AppIcon.icns ] || scripts/make-icon.sh
 cp Resources/Info.plist "$APP/Contents/"
 cp build/AppIcon.icns Resources/Fonts/InterVariable.ttf "$APP/Contents/Resources/"
