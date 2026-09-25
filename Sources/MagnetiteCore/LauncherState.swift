@@ -9,16 +9,17 @@ public struct LauncherState {
     public var selected: Int?, hovered: Int?
     public var selectedApp: AppEntry? { selected.flatMap { rows[$0].app } }
     public init() {}
-    public mutating func load(_ apps: [AppEntry], query: String, history: History, suggestions: Int) {
+    public mutating func load(_ apps: [AppEntry], query: String, history: History, suggestions: Int, update: AppEntry? = nil) {
         if query.trimmingCharacters(in: .whitespaces).isEmpty {
             let suggested = history.suggestions(apps, limit: suggestions), ids = Set(suggested.map(\.id))
             let recent: [Row] = suggested.isEmpty ? [] : [.header("Suggestions")] + suggested.map { .app($0, removable: true) }
-            rows = recent + [.header("Applications")] + apps.filter { !ids.contains($0.id) }.map { .app($0) }
+            let updates: [Row] = update.map { [.header("New Version"), .app($0)] } ?? []
+            rows = updates + recent + [.header("Applications")] + apps.filter { !ids.contains($0.id) }.map { .app($0) }
         } else {
             let results = history.rank(apps, query: query)
             rows = results.isEmpty ? [] : [.header("Results")] + results.map { .app($0) }
         }
-        (selected, hovered) = (rows.firstIndex { $0.app != nil }, nil)
+        (selected, hovered) = (rows.firstIndex { $0.app != nil && $0.app != update }, nil)
     }
     public func app(at row: Int?) -> Int? { row.flatMap { rows.indices.contains($0) && rows[$0].app != nil ? $0 : nil } }
     public func step(_ delta: Int) -> (row: Int, reveal: Int)? {

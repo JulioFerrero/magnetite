@@ -7,7 +7,7 @@ final class LauncherController: NSObject, NSWindowDelegate {
     private let window = LauncherWindow(), bar = SearchBar(), list = ResultsList(), footer = Footer(), history = History()
     private let scanQueue = DispatchQueue(label: "magnetite.scan", qos: .userInitiated, autoreleaseFrequency: .workItem)
     private var state = LauncherState(), apps: [AppEntry] = [], stamps: Catalog.Stamps = [:], isShown = false
-    private var keyMonitor: Any?, runningObservation: NSKeyValueObservation?
+    private var keyMonitor: Any?, runningObservation: NSKeyValueObservation?, update: Update?
     func toggle() { isShown ? hide() : show() }
     func windowDidResignKey(_ notification: Notification) { hide() }
     override init() {
@@ -43,6 +43,10 @@ final class LauncherController: NSObject, NSWindowDelegate {
         isShown = false
         window.park()
         DispatchQueue.main.async { self.bar.clear() }
+        Updater.check { [weak self] in
+            self?.update = $0
+            if self?.isShown == false { self?.reload() }
+        }
     }
     private func refreshIndex() {
         scanQueue.async { [self, stamps] in
@@ -58,7 +62,7 @@ final class LauncherController: NSObject, NSWindowDelegate {
         }
     }
     private func reload() {
-        state.load(apps, query: bar.text, history: history, suggestions: Theme.suggestionCount)
+        state.load(apps, query: bar.text, history: history, suggestions: Theme.suggestionCount, update: update?.entry)
         footer.openButton.isEnabled = state.selected != nil
         list.reload(state)
     }
@@ -79,9 +83,15 @@ final class LauncherController: NSObject, NSWindowDelegate {
     }
     @objc private func openSelected() {
         guard let app = state.selectedApp else { return }
+        if let update, app == update.entry { return install(update) }
         history.record(app, query: bar.text)
         hide()
         NSWorkspace.shared.openApplication(at: app.url, configuration: NSWorkspace.OpenConfiguration())
+    }
+    private func install(_ update: Update) {
+        self.update = nil
+        hide()
+        Updater.install(update) { if $0 { NSApp.terminate(nil) } else { NSWorkspace.shared.open(update.htmlUrl) } }
     }
     @objc private func revealSelected() {
         guard let app = state.selectedApp else { return }

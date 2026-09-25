@@ -27,7 +27,7 @@
 
 Raycast is brilliant, but it's a platform: extensions, AI, clipboard history, snippets, window management, a web UI and a background service. If all you do is open apps, you're running all of that to use one box.
 
-Magnetite is that one box, rebuilt natively. It keeps Raycast 2's look (measured from Raycast's own stylesheets: sizes, colors, Inter at weight 350, the glass header and footer pill) and drops everything else. No account, no extensions, no network access, no permissions to grant.
+Magnetite is that one box, rebuilt natively. It keeps Raycast 2's look (measured from Raycast's own stylesheets: sizes, colors, Inter at weight 350, the glass header and footer pill) and drops everything else. No account, no extensions, no permissions to grant, and the only server it ever talks to is GitHub, to check for updates.
 
 ## Performance
 
@@ -51,7 +51,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 <summary><b>How it stays this light</b></summary>
 
 - **The window never leaves the screen.** Closed, it's invisible and click-through, so opening it is an alpha change plus keyboard focus: no window-server reordering, nothing left to draw. (Measured: hidden, it adds no measurable window-server CPU, even with an animation playing behind it.)
-- **Work happens after closing, not before opening.** The list is reset and redrawn right after the window hides.
+- **Work happens after closing, not before opening.** The list is reset and redrawn right after the window hides, and that's also when it checks for updates, at most once a day.
 - **No rescans unless something changed.** The app folders' modification dates are checked first (0.9 ms) instead of re-reading every app bundle (44 ms).
 - **Icons are rendered once** at list size, about 10 KB each.
 - **The font is trimmed** to the characters and weights the UI uses (880 KB → 340 KB) and loaded straight from its file. Registering it with the system instead would cost 2 MB of per-language tables.
@@ -65,9 +65,9 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 | | **Magnetite** | Raycast 2 |
 |---|---|---|
 | What it does | Finds and opens apps | Launcher + extensions, AI, clipboard, snippets, windows, … |
-| Built with | Swift + AppKit, about 860 lines, no dependencies | Native shell, web UI, separate backend process |
+| Built with | Swift + AppKit, about 920 lines, no dependencies | Native shell, web UI, separate backend process |
 | Permissions | None | Accessibility for some features |
-| Network | Never connects | Store, sync, AI |
+| Network | Only GitHub, at most once a day, to check for updates | Store, sync, AI |
 | Account | None | Optional |
 | Price | Free, and it's yours | Free core, Pro subscription |
 
@@ -79,6 +79,7 @@ Measured side by side on a MacBook Pro (M3 Pro, 18 GB, macOS 27) against Raycast
 - **Every app, even the hidden ones**: `/Applications`, `/System/Applications`, `~/Applications` (Chrome web apps included) and system folders, including Safari's hidden cryptex symlink.
 - **Running apps** get a small dot under their icon.
 - **Any shortcut**: press ⌘, then the new combination; it applies instantly.
+- **Updates itself**: when a new version is out, it's the first row in the list. Click it and Magnetite installs it and restarts in about a second, with no "Open Anyway" this time. It checks GitHub's latest release at most once a day, right after you close the window, and only installs a download whose SHA-256 matches the one GitHub publishes.
 
 ## Keys
 
@@ -107,7 +108,7 @@ cd magnetite
 ./build.sh install   # builds, copies to /Applications, starts it
 ```
 
-Magnetite adds itself to Login Items on first run; turn that off in System Settings → General → Login Items.
+Magnetite adds itself to Login Items on first run; turn that off in System Settings → General → Login Items. From 1.2.0 on it updates itself, so this is the only time you download it.
 
 ## The name and the stone
 
@@ -122,7 +123,7 @@ Magnetite is lodestone, the naturally magnetic mineral: it pulls things to it, t
 
 ## Project
 
-A SwiftPM package with two modules. `MagnetiteCore` is the logic, with no UI: it finds apps, ranks them and turns a query into a `LauncherState`. `Magnetite` is the AppKit app that renders that state. The whole thing is about 860 lines of Swift.
+A SwiftPM package with two modules. `MagnetiteCore` is the logic, with no UI: it finds apps, ranks them and turns a query into a `LauncherState`. `Magnetite` is the AppKit app that renders that state. The whole thing is about 920 lines of Swift.
 
 ```
 Package.swift
@@ -133,6 +134,7 @@ Sources/
     History.swift               frecency, per-query picks, forgetting
     LauncherState.swift         rows, selection and keyboard stepping
     Shortcut.swift              parses and displays key combos
+    Updater.swift               checks GitHub for a newer release and installs it
   Magnetite/
     main.swift                  app delegate, login item, menus
     HotKey.swift                global hotkey (Carbon, no permissions)

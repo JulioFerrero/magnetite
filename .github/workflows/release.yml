@@ -34,7 +34,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          DMG="build/Magnetite-$VERSION.dmg"
+          DMG="build/Magnetite-$VERSION.dmg" ZIP="build/Magnetite-$VERSION.zip"
+          ditto -c -k --keepParent build/Magnetite.app "$ZIP"
           PREVIOUS=$(git describe --tags --abbrev=0 --exclude "$TAG" HEAD 2>/dev/null || true)
           {
             echo "## Install"
@@ -42,6 +43,8 @@ jobs:
             echo "1. Download **Magnetite-$VERSION.dmg** below, open it and drag Magnetite to Applications."
             echo "2. Open Magnetite. macOS says it can't check the app, because it isn't notarized: go to System Settings → Privacy & Security, scroll down and click **Open Anyway**. You only do this once."
             echo "3. Press ⌘Space. If Spotlight opens instead, turn off its shortcut in System Settings → Keyboard → Keyboard Shortcuts → Spotlight."
+            echo
+            echo "From 1.2.0 on, Magnetite updates itself: new versions show up at the top of its list, click one to install it."
             echo
             echo "Runs on macOS 14 or later, on Apple silicon and Intel Macs: Liquid Glass on macOS 26 and later, a solid background on 14 and 15."
             echo
@@ -51,4 +54,4 @@ jobs:
             echo
             echo "SHA-256 \`$(shasum -a 256 "$DMG" | cut -d' ' -f1)\`"
           } > notes.md
-          gh release create "$TAG" "$DMG" --target "$GITHUB_SHA" --title "Magnetite $VERSION" --notes-file notes.md
+          gh release create "$TAG" "$DMG" "$ZIP" --target "$GITHUB_SHA" --title "Magnetite $VERSION" --notes-file notes.md
