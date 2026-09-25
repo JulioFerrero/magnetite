@@ -12,15 +12,15 @@ public enum Updater {
     private static let session = URLSession(configuration: .ephemeral), app = Bundle.main.bundleURL
     private static let latest = URL(string: "https://api.github.com/repos/JulioFerrero/magnetite/releases/latest")!
     private static var nextCheck = Date.distantPast
+    public static let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     public static func check(_ found: @escaping (Update) -> Void) {
         guard app.pathExtension == "app", Date() > nextCheck else { return }
         nextCheck = Date() + 86_400
-        let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
         session.dataTask(with: latest) { data, _, _ in
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             guard let update = data.flatMap({ try? decoder.decode(Update.self, from: $0) }),
-                  update.tagName.dropFirst().compare(current, options: .numeric) == .orderedDescending else { return }
+                  update.tagName.dropFirst().compare(version, options: .numeric) == .orderedDescending else { return }
             DispatchQueue.main.async { found(update) }
         }.resume()
     }

@@ -112,6 +112,8 @@ final class LauncherController: NSObject, NSWindowDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: "Change Shortcut…", action: #selector(changeShortcut), keyEquivalent: ",").target = self
         menu.addItem(withTitle: "Quit Magnetite", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Magnetite \(Updater.version)", action: nil, keyEquivalent: "").isEnabled = false
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: footer.actionsButton.bounds.height + menu.size.height + 6), in: footer.actionsButton)
     }
     private func perform(_ selector: Selector) -> Bool {
