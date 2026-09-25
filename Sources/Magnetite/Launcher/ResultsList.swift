@@ -28,9 +28,11 @@ final class ResultsList: NSView, NSTableViewDataSource, NSTableViewDelegate {
     func reload(_ state: LauncherState) {
         let rows = IndexSet(integersIn: 0..<state.rows.count)
         (self.state, emptyLabel.isHidden) = (state, !rows.isEmpty)
-        table.noteNumberOfRowsChanged()
-        instantly { table.noteHeightOfRows(withIndexesChanged: rows) }
-        table.reloadData(forRowIndexes: rows, columnIndexes: [0])
+        instantly {
+            table.noteNumberOfRowsChanged()
+            table.noteHeightOfRows(withIndexesChanged: rows)
+            table.reloadData(forRowIndexes: rows, columnIndexes: [0])
+        }
         update(state)
         scrollView.contentView.scroll(to: NSPoint(x: 0, y: -Theme.listTopInset))
         scrollView.reflectScrolledClipView(scrollView.contentView)
