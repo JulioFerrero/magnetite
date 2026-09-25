@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshot.png" width="760" alt="Magnetite's search window: suggestions and the app list on Liquid Glass">
+  <img src="assets/demo.gif" width="760" alt="Magnetite on Liquid Glass: ⌘Space opens it, then gc finds Google Chrome, actmon finds Activity Monitor and sys set finds System Settings">
 </p>
 
 ---
@@ -156,5 +156,6 @@ scripts/                        icon, one-colour logo, font and DMG builders
 
 ## Credits
 
+- Made by [Julio Ferrero](https://www.julio.dev) in Barcelona. I also build [Movabase](https://movabase.com), translation management that syncs with your Git repo.
 - UI modelled on [Raycast](https://raycast.com) 2's root search. Magnetite isn't affiliated with Raycast.
 - [Inter](https://rsms.me/inter/) by Rasmus Andersson, SIL Open Font License (`Resources/Fonts/LICENSE.txt`).
