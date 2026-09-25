@@ -13,6 +13,7 @@
   <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111?logo=apple&logoColor=white">
   <img alt="Swift" src="https://img.shields.io/badge/Swift-AppKit-F05138?logo=swift&logoColor=white">
   <img alt="No dependencies" src="https://img.shields.io/badge/dependencies-0-3A4250">
+  <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-3A4250">
   <img alt="23 MB RAM" src="https://img.shields.io/badge/RAM-23_MB-3A4250">
   <img alt="0% idle CPU" src="https://img.shields.io/badge/idle_CPU-0%25-3A4250">
 </p>
@@ -159,3 +160,7 @@ scripts/                        icon, one-colour logo, font and DMG builders
 - Made by [Julio Ferrero](https://www.julio.dev) in Barcelona. I also build [Movabase](https://movabase.com), translation management that syncs with your Git repo.
 - UI modelled on [Raycast](https://raycast.com) 2's root search. Magnetite isn't affiliated with Raycast.
 - [Inter](https://rsms.me/inter/) by Rasmus Andersson, SIL Open Font License (`Resources/Fonts/LICENSE.txt`).
+
+## License
+
+MIT, see [LICENSE](LICENSE). The bundled Inter font keeps its own license, above.
